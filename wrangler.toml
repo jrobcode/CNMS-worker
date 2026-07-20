@@ -2,15 +2,26 @@ name = "cnms-api"
 main = "src/worker.ts"
 compatibility_date = "2025-01-01"
 
-# Binds app.cnms.io directly to this Worker as a Custom Domain.
-# Make sure no other Worker or origin owns app.cnms.io before deploying.
+# Bind the entire API hostname directly to this Worker as a Custom Domain.
+# Unlike a zone route, this makes the Worker the hostname's origin and prevents
+# requests from falling through to a competing DNS origin.
+#   Workers & Pages → cnms-api → Settings → Domains & Routes
+#   Custom Domain: app.cnms.io
+#
+# Set the Supabase anon key as a secret (never commit it):
+#   wrangler secret put SUPABASE_ANON_KEY
 
 [vars]
-SUPABASE_URL = "https://vycsekurctvnhfmkzwcl.supabase.co"
+# Keep the complete Edge Functions base path here. The Worker appends only the
+# function name and optional subpath, preventing requests from hitting the
+# project root and returning "requested path is invalid".
+SUPABASE_FUNCTIONS_URL = "https://vycsekurctvnhfmkzwcl.supabase.co/functions/v1"
 SUPABASE_ANON_KEY = "sb_publishable_ubfgjC-YWKTO6T-z3MmmvA_2jnDo2ku"
+# Public route prefix removed before selecting the backend function.
 API_PREFIX = "/v1"
 
 [[routes]]
 pattern = "app.cnms.io"
 custom_domain = true
+
 
