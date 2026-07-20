@@ -1,0 +1,11 @@
+name = "cnms-api"
+main = "../worker.ts"
+compatibility_date = "2025-01-01"
+
+[vars]
+SUPABASE_URL = "https://vycsekurctvnhfmkzwcl.supabase.co"
+API_PREFIX = "/v1"
+
+[[routes]]
+pattern = "app.cnms.io/v1/*"
+zone_name = "cnms.io"

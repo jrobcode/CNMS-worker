@@ -1,36 +1,39 @@
 /**
- * Cloudflare Worker — app.cnms.io
- * Proxies all requests to Supabase backend.
+ * Cloudflare Worker — app.cnms.io/v1/*
+ * Proxies /v1/... requests to Supabase backend.
  */
 
-const SUPABASE_URL = "https://vycsekurctvnhfmkzwcl.supabase.co";
-
 export default {
-  async fetch(request: Request, _env: Env, _ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+    const path = url.pathname;
 
-    // Build the upstream URL — forward the path and query string as-is
-    const upstreamUrl = new URL(url.pathname + url.search, SUPABASE_URL);
+    // Only handle /v1/* paths
+    if (!path.startsWith("/v1")) {
+      return new Response(JSON.stringify({ error: "Not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    // Strip /v1 prefix before forwarding to Supabase
+    const upstreamPath = path.replace(/^\/v1/, "") + url.search;
+    const upstreamUrl = new URL(upstreamPath, env.SUPABASE_URL);
 
     // Forward the request with the original method, headers, and body
     const upstreamRequest = new Request(upstreamUrl.toString(), {
       method: request.method,
       headers: request.headers,
       body: request.body,
-      // Preserve the original request signal for cancellation
       signal: request.signal,
     });
 
-    // Add the Host header so Supabase sees the original host
-    upstreamRequest.headers.set("Host", new URL(SUPABASE_URL).host);
+    upstreamRequest.headers.set("Host", new URL(env.SUPABASE_URL).host);
 
     try {
       const response = await fetch(upstreamRequest);
-
-      // Clone the response so we can modify headers
       const proxyResponse = new Response(response.body, response);
 
-      // Add CORS headers for browser-based requests
       proxyResponse.headers.set("Access-Control-Allow-Origin", "*");
       proxyResponse.headers.set(
         "Access-Control-Allow-Methods",
