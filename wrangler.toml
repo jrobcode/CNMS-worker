@@ -1,0 +1,8 @@
+name = "app-cnms"
+main = "src/worker.ts"
+compatibility_date = "2024-07-22"
+
+# Route app.cnms.io to this worker
+routes = [
+  { pattern = "app.cnms.io", custom_domain = true }
+]
