@@ -3,12 +3,10 @@
  * Proxies all requests to Supabase backend.
  */
 
-import type { ExecutionContext } from "@cloudflare/workers-types";
-
 const SUPABASE_URL = "https://vycsekurctvnhfmkzwcl.supabase.co";
 
 export default {
-  async fetch(request: Request, _env: unknown, _ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, _env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
     // Build the upstream URL — forward the path and query string as-is
